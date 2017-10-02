@@ -34,26 +34,28 @@ public class TownshipCacheImpl implements TownshipCache {
                     realm.beginTransaction();
                     realm.delete(TownshipEntity.class);
                     realm.commitTransaction();
-                    realm.close();
                 }
                 return isExpired;
             } catch (ParseException e) {
                 e.printStackTrace();
+            } finally {
+                realm.close();
             }
 
         }
+        realm.close();
         return false;
     }
 
     @Override
     public boolean isCached() {
-        Realm realm = Realm.getDefaultInstance();
-        return realm.where(TownshipEntity.class).findAll() != null && realm.where(TownshipEntity.class).findAll().size() > 0;
+        List<TownshipEntity> townshipEntities = getTownshipEntityList();
+        return townshipEntities != null && townshipEntities.size() > 0;
     }
 
     @Override
     public Observable<List<TownshipEntity>> get() {
-        List<TownshipEntity> townshipEntities = Realm.getDefaultInstance().where(TownshipEntity.class).findAll();
+        List<TownshipEntity> townshipEntities = getTownshipEntityList();
         return Observable.just(townshipEntities);
     }
 
@@ -64,5 +66,13 @@ public class TownshipCacheImpl implements TownshipCache {
         realm.copyToRealmOrUpdate(townshipEntities);
         realm.commitTransaction();
         realm.close();
+    }
+
+    private List<TownshipEntity> getTownshipEntityList() {
+        Realm realm = Realm.getDefaultInstance();
+        List<TownshipEntity> townshipEntities = realm.copyFromRealm(
+                realm.where(TownshipEntity.class).findAll());
+        realm.close();
+        return townshipEntities;
     }
 }
