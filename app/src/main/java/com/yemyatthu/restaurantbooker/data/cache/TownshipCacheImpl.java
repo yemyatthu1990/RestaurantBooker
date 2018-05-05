@@ -43,7 +43,6 @@ public class TownshipCacheImpl implements TownshipCache {
             }
 
         }
-        realm.close();
         return false;
     }
 
